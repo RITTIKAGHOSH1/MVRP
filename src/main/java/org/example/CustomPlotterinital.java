@@ -14,39 +14,31 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import javax.swing.JFrame;
-import java.awt.Color;
-import java.awt.Font;
+import javax.swing.*;
+import java.awt.*;
 import java.util.Collection;
 
-public class CustomPlotter {
+public class CustomPlotterinital {
 
-    /**
-     * Displays the VRP solution in a window using an XY line chart.
-     * Each vehicle's route is plotted as a separate colored series,
-     * and each location is annotated with its ID.
-     *
-     * @param solution the VRP solution to be visualized.
-     */
     public static void displaySolution(VehicleRoutingProblemSolution solution) {
         // Prepare a dataset where each series corresponds to one vehicle's route.
         XYSeriesCollection dataset = new XYSeriesCollection();
-        // Define an array of colors to differentiate routes.
-        Color[] colors = {Color.RED, Color.BLUE, Color.GREEN, Color.MAGENTA, Color.ORANGE, Color.CYAN, Color.PINK, Color.YELLOW};
+        // Define a set of colors to differentiate vehicles.
+        Color[] colors = {Color.RED, Color.BLUE, Color.GREEN, Color.MAGENTA, Color.ORANGE};
 
         // Iterate over all routes in the solution.
         Collection<VehicleRoute> routes = solution.getRoutes();
         int routeIndex = 0;
         for (VehicleRoute route : routes) {
             String seriesKey = route.getVehicle().getId() + "_" + routeIndex;
-            // Create a series for the route.
+            // Create a series named with the vehicle's ID.
             XYSeries series = new XYSeries(seriesKey);
 
-            // Add the start (depot) location.
+            // Add the start location.
             Location startLoc = route.getStart().getLocation();
             series.add(startLoc.getCoordinate().getX(), startLoc.getCoordinate().getY());
 
-            // Add each activity location (service stops).
+            // Add each activity's location.
             for (TourActivity activity : route.getActivities()) {
                 Location loc = activity.getLocation();
                 series.add(loc.getCoordinate().getX(), loc.getCoordinate().getY());
@@ -56,59 +48,55 @@ public class CustomPlotter {
             Location endLoc = route.getEnd().getLocation();
             series.add(endLoc.getCoordinate().getX(), endLoc.getCoordinate().getY());
 
-            // Add this series to the dataset.
             dataset.addSeries(series);
             routeIndex++;
         }
 
         // Create an XY line chart.
         JFreeChart chart = ChartFactory.createXYLineChart(
-                "Vehicle Routing Solution",   // Chart title
-                "X",                          // X-Axis label
-                "Y",                          // Y-Axis label
-                dataset,                      // Dataset
-                PlotOrientation.VERTICAL,     // Plot orientation
-                true,                         // Include legend
-                true,                         // Tooltips
-                false                         // URLs
+                "Vehicle Routing Solution",  // Chart title
+                "X",                         // X-Axis Label
+                "Y",                         // Y-Axis Label
+                dataset,                     // Dataset
+                PlotOrientation.VERTICAL,    // Orientation
+                true,                        // Legend
+                true,                        // Tooltips
+                false                        // URLs
         );
 
-        // Customize the plot by setting different colors for each series.
+        // Customize the plot: assign different colors to each vehicle route.
         XYPlot plot = chart.getXYPlot();
         for (int i = 0; i < dataset.getSeriesCount(); i++) {
             plot.getRenderer().setSeriesPaint(i, colors[i % colors.length]);
         }
 
-        // Add annotations (location IDs) for every point.
+        // Add annotations for each location with its ID.
         for (VehicleRoute route : routes) {
             // Annotate the start location.
-            addAnnotation(plot, route.getStart().getLocation());
+            Location startLoc = route.getStart().getLocation();
+            addAnnotation(plot, startLoc);
 
-            // Annotate each service activity's location.
+            // Annotate each activity's location.
             for (TourActivity activity : route.getActivities()) {
                 addAnnotation(plot, activity.getLocation());
             }
 
             // Annotate the end location.
-            addAnnotation(plot, route.getEnd().getLocation());
+            Location endLoc = route.getEnd().getLocation();
+            addAnnotation(plot, endLoc);
         }
 
-        // Create a chart panel and a frame to display the chart.
+        // Create and show the chart in a JFrame.
         ChartPanel panel = new ChartPanel(chart);
         JFrame frame = new JFrame("Custom Vehicle Routing Plot");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.add(panel);
         frame.pack();
-        frame.setLocationRelativeTo(null); // center on screen
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 
-    /**
-     * Adds an annotation to the plot at the given location.
-     *
-     * @param plot the XYPlot where the annotation will be added.
-     * @param loc  the location whose ID and coordinates will be annotated.
-     */
+    // Helper method to add an annotation at a location's coordinate.
     private static void addAnnotation(XYPlot plot, Location loc) {
         Coordinate coord = loc.getCoordinate();
         XYTextAnnotation annotation = new XYTextAnnotation(loc.getId(), coord.getX(), coord.getY());
@@ -116,4 +104,8 @@ public class CustomPlotter {
         annotation.setPaint(Color.BLACK);
         plot.addAnnotation(annotation);
     }
+
+    // For testing, you can call this method from your main method after obtaining the solution:
+
 }
+
